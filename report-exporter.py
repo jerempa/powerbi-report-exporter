@@ -73,7 +73,7 @@ class ReportExporter:
         headers = {"Authorization": f'Bearer {self.bearer}'}
 
         response = requests.post(url, json=body, headers=headers)
-        response.raise_for_status()
+        logging.info(response.raise_for_status())
 
         res_json = response.json()
         if response.status_code == 202:
@@ -107,7 +107,7 @@ class ReportExporter:
         logging.info("Generation started")
         while True:
             response = requests.get(url, headers=headers)
-            response.raise_for_status()
+            logging.info(response.raise_for_status())
 
             res_json = response.json()
             if res_json["status"] == "Succeeded":
@@ -139,7 +139,7 @@ class ReportExporter:
         headers = {"Authorization": f'Bearer {self.bearer}'}
 
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        logging.info(response.raise_for_status())
         if os.path.basename(os.getcwd()) != "downloaded_reports":
             try:
                 os.chdir(f'{os.getcwd()}/downloaded_reports')
@@ -151,7 +151,7 @@ class ReportExporter:
             file.write(response.content)
 
 def main():
-    id_dict = retrieve_ids(skip_check=False)
+    id_dict = retrieve_ids(False)
     
     group_id_dev = id_dict.get("group_id_dev")
     report_id_pdf_dev = id_dict.get("report_id_pdf_dev")
@@ -197,7 +197,8 @@ def create_bearer(tenant_id: str, client_id: str, client_secret: str) -> None:
     response = requests.post(url, data=body)
     res = response.json()
 
-    bearer_to_file(res["access_token"])
+    id_dict = bearer_to_file(res["access_token"])
+    return id_dict
 
 def bearer_to_file(bearer: str) -> None:
     """
@@ -214,13 +215,17 @@ def bearer_to_file(bearer: str) -> None:
     """
     now = datetime.now()
     expiry = now + timedelta(hours=1)
-    id_dict = retrieve_ids(skip_check=True)
+    id_dict = retrieve_ids(True)
     with open("ids.txt", "w") as f:
         for key, value in id_dict.items():
             if key == "bearer":
                 f.write(f"bearer,{bearer},{expiry}\n")
             else:
                 f.write(f"{key},{value}\n")
+
+    id_dict = retrieve_ids(True) #updating the dict with the newly written bearer
+    return id_dict
+                
 
 def retrieve_ids(skip_check: bool) -> dict:
     """
@@ -237,6 +242,7 @@ def retrieve_ids(skip_check: bool) -> dict:
         A dictionary containing the retrieved IDs and bearer token.
     """
     id_dict = {}
+    bearer_expiry = None
     with open("ids.txt", "r") as f:
         client_id = id_dict.get("client_id")
         client_secret = id_dict.get("client_secret")
@@ -246,27 +252,19 @@ def retrieve_ids(skip_check: bool) -> dict:
             line = line.split(",")
             line_str = line[0].strip()
             line_id = line[1].strip()
-            match line_str:
-                case "client_id":
-                    id_dict[line_str] = line_id
-                    client_id = line_id
-                case "client_secret":
-                    id_dict[line_str] = line_id
-                    client_secret = line_id
-                case "tenant_id":
-                    id_dict[line_str] = line_id
-                    tenant_id = line_id
-                case "group_id_dev":
-                    id_dict[line_str] = line_id
-                case "report_id_pdf_dev":
-                    id_dict[line_str] = line_id
-                case "bearer":
-                    bearer_expiry = line[2]
-                    bearer_expiry = datetime.strptime(bearer_expiry, "%Y-%m-%d %H:%M:%S.%f")
-                    now = datetime.now()
-                    if now > bearer_expiry and not skip_check: #If time now is larger than the expiry in txt then the bearer has expired
-                        create_bearer(tenant_id, client_id, client_secret)
-                    id_dict[line_str] = line_id
+            id_dict[line_str] = line_id
+            if line_str == "bearer":
+                bearer_expiry = datetime.strptime(line[2], "%Y-%m-%d %H:%M:%S.%f")
+
+
+    if not skip_check: 
+        now = datetime.now()
+        if now > bearer_expiry: #If time now is larger than the expiry in txt then the bearer has expired
+            tenant_id = id_dict.get("tenant_id")
+            client_id = id_dict.get("client_id")
+            client_secret = id_dict.get("client_secret")
+            id_dict = create_bearer(tenant_id, client_id, client_secret)
+    
     return id_dict
 
 def retrieve_business_ids() -> list[dict]:

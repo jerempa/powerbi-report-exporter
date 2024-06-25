@@ -20,6 +20,6 @@ and business_ids.csv as follows:
 
 where newline is used as separator and "k" used to distinguish between not-concern and concern.
 
-## Installing libraries
+## Installing libraries and running the script
 
-requirements.txt has needed libraries and their versions, though requests is the only one not part of Python standard library. This can be installed by running "pip install -r requirements.txt" on terminal.
+requirements.txt has needed libraries and their versions, though requests is the only one not part of Python standard library. This can be installed by running "pip install -r requirements.txt" on terminal. Script can be run with the command python report-exporter.py.

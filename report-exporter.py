@@ -150,7 +150,7 @@ class ReportExporter:
                 os.makedirs("downloaded_reports")
                 os.chdir(f'{os.getcwd()}/downloaded_reports') #Creating a separate directory for the downloaded PDFs
 
-        with open(f'downloaded_file_{business_id}_{language}.pdf', 'wb') as file:
+        with open(f'{business_id}_{language}.pdf', 'wb') as file:
             file.write(response.content)
 
 def main():

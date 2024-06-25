@@ -73,7 +73,8 @@ class ReportExporter:
         headers = {"Authorization": f'Bearer {self.bearer}'}
 
         response = requests.post(url, json=body, headers=headers)
-        logging.info(response.raise_for_status())
+        if response.raise_for_status():
+            logging.info(response.raise_for_status())
 
         res_json = response.json()
         if response.status_code == 202:
@@ -107,7 +108,8 @@ class ReportExporter:
         logging.info("Generation started")
         while True:
             response = requests.get(url, headers=headers)
-            logging.info(response.raise_for_status())
+            if response.raise_for_status():
+                logging.info(response.raise_for_status())
 
             res_json = response.json()
             if res_json["status"] == "Succeeded":
@@ -139,7 +141,8 @@ class ReportExporter:
         headers = {"Authorization": f'Bearer {self.bearer}'}
 
         response = requests.get(url, headers=headers)
-        logging.info(response.raise_for_status())
+        if response.raise_for_status():
+            logging.info(response.raise_for_status())
         if os.path.basename(os.getcwd()) != "downloaded_reports":
             try:
                 os.chdir(f'{os.getcwd()}/downloaded_reports')

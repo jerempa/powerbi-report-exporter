@@ -5,17 +5,17 @@ This script generates and downloads Power BI reports through the Power BI REST A
 ## ids.txt and business_ids.csv
 
 The script uses local files ids.txt for client_id, client_secret, tenant_id, group(workspace)_id, report_id and bearer token. The txt-file is formatted as follows:
-client_id,val
-client_secret,val
-tenant_id,val
-group_id_dev,val
-report_id_pdf_dev,val
+client_id,val </br>
+client_secret,val </br>
+tenant_id,val </br>
+group_id_dev,val </br>
+report_id_pdf_dev,val </br>
 bearer,val,expiry as datetime
 
 and business_ids.csv as follows:
-123
-123k
-321
+123 </br>
+123k </br>
+321 </br>
 321k
 
 where newline is used as separator and "k" used to distinguish between not-concern and concern.

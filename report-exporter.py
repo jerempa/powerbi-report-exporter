@@ -62,11 +62,12 @@ class ReportExporter:
 
         body = {
             "format": "PDF",
+            "exportReportSettings": {"locale": language},
             "powerBIReportConfiguration": {
                 "reportLevelFilters": [{"filter": company_filter}],
-                "settings": {
-                    "locale": language
-                }
+                "pages": [{"pageName": "ReportSectionffd94e439ad791240782"}, {"pageName": "ReportSection377cec962b14e9482a43"},
+                {"pageName": "ReportSection8ef5f434cbd0c2a8267a"}, {"pageName": "ReportSection4827d0d49fb7df54c2ec"},
+                {"pageName": "ReportSection0e52bbd7623b2347c0a4"}]
             }
         }
 
@@ -117,7 +118,8 @@ class ReportExporter:
                 logging.info(f'Report generation took: {end - start:.2f} seconds')
                 self.download_report(export_id, business_id, language)
                 break
-            time.sleep(5)  # Polling the generation to avoid unnecessary amount of requests
+            time.sleep(3)  # Polling the generation to avoid unnecessary amount of requests
+
 
     def download_report(self, export_id: str, business_id: str, language: str) -> None:
         """
@@ -150,7 +152,7 @@ class ReportExporter:
                 os.makedirs("downloaded_reports")
                 os.chdir(f'{os.getcwd()}/downloaded_reports') #Creating a separate directory for the downloaded PDFs
 
-        with open(f'{business_id}_{language}.pdf', 'wb') as file:
+        with open(f'{business_id}_{language}_pagetest.pdf', 'wb') as file:
             file.write(response.content)
 
 def main():
@@ -164,7 +166,7 @@ def main():
 
     exporter = ReportExporter(bearer, group_id_dev, report_id_pdf_dev)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         futures = [
             executor.submit(exporter.get_export_id, report["business_id"], report["language"])
             for report in reports_to_exports
